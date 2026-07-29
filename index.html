@@ -213,15 +213,10 @@
     border-radius:6px;
   }
 
-  /* Salas de AUDIO: más alto para que el reproductor alcance a mostrar
-     su lista de reproducción / capítulos sin que el frame la recorte.
-     Si el widget necesita aún más espacio, se habilita scroll interno
-     en vez de cortar contenido. */
+  /* Salas de AUDIO: alto fijo de 340px, suficiente para que se vea
+     la lista de reproducción/capítulos debajo de la barra de progreso. */
   .screen.audio{
-    min-height:540px;
-  }
-  .screen.audio .embed-holder{
-    overflow-y:auto;
+    height:340px;
   }
 
   /* Botón de pantalla completa debajo de los frames de video */
@@ -455,7 +450,7 @@
       </button>
       <div class="ticket">
         <p class="ticket-title">Super Mario Galaxy</p>
-        <p class="ticket-desc" contenteditable="true">Mario y Luigi se enfrentan una nueva amenaza: Bowser Jr., quién está decidido liberar a su padre del cautiverio y restaurar el legado familiar. Junto con nuevos y viejos compañeros, los hermanos viajan a través de las estrellas para detener la cruzada del joven heredero.</p>
+        <p class="ticket-desc" contenteditable="true">Escribe aquí una breve descripción del episodio.</p>
       </div>
     </div>
 

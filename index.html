@@ -214,10 +214,41 @@
   }
 
   /* Salas de AUDIO: más alto para que el reproductor alcance a mostrar
-     su lista de reproducción / capítulos sin que el frame la recorte. */
+     su lista de reproducción / capítulos sin que el frame la recorte.
+     Si el widget necesita aún más espacio, se habilita scroll interno
+     en vez de cortar contenido. */
   .screen.audio{
-    min-height:430px;
+    min-height:540px;
   }
+  .screen.audio .embed-holder{
+    overflow-y:auto;
+  }
+
+  /* Botón de pantalla completa debajo de los frames de video */
+  .fullscreen-btn{
+    margin-top:10px;
+    width:100%;
+    padding:9px 10px;
+    background:transparent;
+    border:1px solid var(--neon-cyan);
+    border-radius:6px;
+    color:var(--neon-cyan);
+    font-family:'Share Tech Mono', monospace;
+    font-size:11px;
+    letter-spacing:.12em;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    transition:background .2s ease, color .2s ease, box-shadow .2s ease;
+  }
+  .fullscreen-btn:hover{
+    background:var(--neon-cyan);
+    color:#03151a;
+    box-shadow:0 0 16px rgba(5,242,219,.6);
+  }
+  .fullscreen-btn svg{ width:12px; height:12px; flex-shrink:0; }
 
   .sala-tag{
     position:absolute;
@@ -374,10 +405,14 @@
         <div class="embed-holder">
           <iframe src="https://vimeos.net/embed-1w90yyz1pqnx.html?tt=PwRSgwAL%2BPJ%2BnpoJ7d4BzSjkJl1OWnraxJua3DDE0ZlXPSV68Vqc%2FDbjgiMoFleM4FMA%2B%2BuKZ6ynZrMB9cJ5Zg%3D%3D"
             title="Amos del Universo (2026) - LaMovie – Películas, Series y Animes Online en HD Gratis" frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
             allowfullscreen></iframe>
         </div>
       </div>
+      <button class="fullscreen-btn" type="button" onclick="goFullscreen(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+        PANTALLA COMPLETA
+      </button>
       <div class="ticket">
         <p class="ticket-title">He-Man: Amos del Universo</p>
         <p class="ticket-desc" contenteditable="true">En las regiones más lejanas del espacio, el Reino de Eternia está amenazado por el villano Skeletor y sus ejércitos de oscuridad. El joven príncipe Adam debe recuperar una espada mítica y convertirse en el legendario guerrero conocido como "He-Man".</p>
@@ -390,10 +425,14 @@
         <div class="embed-holder">
           <iframe src="https://vimeos.net/embed-3lrsrb8yg9r7.html?tt=FfYtGfqvyovG4RInHsrTC2TvDqF5Z3IHQ8JXSBTUu5qwnGzydL38auIFWTMO5p8X4WYYeZH9rxSO4BuKj1XR3w%3D%3D"
             title="Supergirl (2026) - LaMovie – Películas, Series y Animes Online en HD Gratis" frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
             allowfullscreen></iframe>
         </div>
       </div>
+      <button class="fullscreen-btn" type="button" onclick="goFullscreen(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+        PANTALLA COMPLETA
+      </button>
       <div class="ticket">
         <p class="ticket-title">Supergirl</p>
         <p class="ticket-desc" contenteditable="true">Mientras celebra su cumpleaños número 21, Kara Zor-El viaja por la galaxia con su perro Krypto. Durante el viaje conoce a la joven Ruthye Marye Knoll y emprende una búsqueda de venganza.</p>
@@ -406,10 +445,14 @@
         <div class="embed-holder">
           <iframe src="https://vimeos.net/embed-v7hdakih9470.html?tt=a93aIqeIP5Ya%2FNO89cPhJ09BzXuZhATlliRS4EwS6wSQdxten8Yu84mvDoom2iu729jbrUH0hSsS65A9FAD4JA%3D%3D"
             title="Super Mario Galaxy: La película (2026) - LaMovie – Películas, Series y Animes Online en HD Gratis" frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
             allowfullscreen></iframe>
         </div>
       </div>
+      <button class="fullscreen-btn" type="button" onclick="goFullscreen(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+        PANTALLA COMPLETA
+      </button>
       <div class="ticket">
         <p class="ticket-title">Super Mario Galaxy</p>
         <p class="ticket-desc" contenteditable="true">Escribe aquí una breve descripción del episodio.</p>
@@ -549,6 +592,16 @@
   <footer>SEÑAL TRANSMITIDA DESDE LA <span>CARTELERA</span> · FUNCIÓN CONTINUA</footer>
 
 <script>
+  // Expande el iframe de video de esa sala a pantalla completa
+  function goFullscreen(btn){
+    const frame = btn.closest('.slot').querySelector('iframe');
+    if(!frame) return;
+    if(frame.requestFullscreen) frame.requestFullscreen();
+    else if(frame.webkitRequestFullscreen) frame.webkitRequestFullscreen();
+    else if(frame.mozRequestFullScreen) frame.mozRequestFullScreen();
+    else if(frame.msRequestFullscreen) frame.msRequestFullscreen();
+  }
+
   (function(){
     const box = document.getElementById('bulbs');
     const count = 46;

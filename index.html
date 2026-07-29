@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CARTELERA // cine digital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-void:#0a0118;
+    --bg-void-2:#120826;
+    --panel:#150a2e;
+    --panel-edge:#241246;
+    --neon-magenta:#ff2e88;
+    --neon-cyan:#05f2db;
+    --neon-yellow:#f9f002;
+    --neon-violet:#9b30ff;
+    --text-soft:#e7ddff;
+    --text-dim:#9082b8;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html{ scroll-behavior:smooth; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse at 20% -10%, rgba(255,46,136,.18), transparent 45%),
+      radial-gradient(ellipse at 85% 0%, rgba(5,242,219,.14), transparent 40%),
+      repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0px, rgba(255,255,255,.02) 1px, transparent 1px, transparent 3px),
+      var(--bg-void);
+    color:var(--text-soft);
+    font-family:'Rajdhani', sans-serif;
+    overflow-x:hidden;
+  }
+
+  .marquee-frame{
+    position:relative;
+    margin:22px auto 10px;
+    max-width:1180px;
+    padding:6px;
+    border-radius:14px;
+    background:linear-gradient(160deg,#2a1550,#150a2e 60%);
+    box-shadow:0 0 0 1px rgba(255,255,255,.05), 0 20px 60px -20px rgba(255,46,136,.35);
+  }
+
+  .marquee-bulbs{
+    position:absolute;
+    inset:0;
+    border-radius:14px;
+    pointer-events:none;
+  }
+  .marquee-bulbs span{
+    position:absolute;
+    width:6px; height:6px;
+    border-radius:50%;
+    background:var(--neon-yellow);
+    box-shadow:0 0 6px 2px var(--neon-yellow);
+    animation:bulb-chase 1.6s infinite steps(1);
+  }
+
+  .marquee-inner{
+    position:relative;
+    border-radius:10px;
+    padding:34px 20px 28px;
+    text-align:center;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.03), transparent 40%),
+      var(--bg-void-2);
+    border:1px solid rgba(255,255,255,.06);
+  }
+
+  .eyebrow{
+    font-family:'Share Tech Mono', monospace;
+    letter-spacing:.4em;
+    font-size:11px;
+    color:var(--neon-cyan);
+    text-shadow:0 0 8px rgba(5,242,219,.7);
+    margin:0 0 10px;
+  }
+
+  h1.title{
+    font-family:'Orbitron', sans-serif;
+    font-weight:900;
+    font-size:clamp(2rem, 6vw, 3.6rem);
+    margin:0;
+    letter-spacing:.05em;
+    color:#fff;
+    text-shadow:
+      0 0 6px rgba(255,255,255,.6),
+      0 0 22px var(--neon-magenta),
+      0 0 46px var(--neon-magenta);
+    animation:flicker 5s infinite;
+  }
+
+  .subtitle{
+    margin:12px auto 0;
+    max-width:560px;
+    font-size:clamp(.9rem, 2vw, 1.05rem);
+    color:var(--text-dim);
+  }
+
+  .now-showing{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    margin-top:18px;
+    padding:6px 16px;
+    border:1px solid var(--neon-cyan);
+    border-radius:999px;
+    font-family:'Share Tech Mono', monospace;
+    font-size:12px;
+    letter-spacing:.2em;
+    color:var(--neon-cyan);
+  }
+  .now-showing .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--neon-cyan);
+    box-shadow:0 0 8px var(--neon-cyan);
+    animation:pulse 1.4s infinite;
+  }
+
+  .filmstrip{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    max-width:1180px;
+    margin:26px auto 18px;
+    padding:0 20px;
+  }
+  .filmstrip span{
+    width:12px;height:12px;
+    background:var(--panel-edge);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:2px;
+  }
+
+  /* ---------- GRID (auto-ajustable con flexbox) ---------- */
+  /* No depende de contar elementos exactos: si agregas o quitas salas,
+     se reacomodan solas en filas de 4 / 2 / 1 según pantalla, y la
+     última fila incompleta se centra automáticamente. */
+  .cartelera{
+    max-width:1180px;
+    margin:0 auto 60px;
+    padding:0 20px;
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:26px 22px;
+  }
+
+  .slot{
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    flex:1 1 250px;
+    max-width:268px;
+  }
+
+  @media (max-width:900px){
+    .slot{ flex-basis:44%; max-width:44%; }
+  }
+  @media (max-width:520px){
+    .slot{ flex-basis:100%; max-width:100%; }
+  }
+
+  .screen{
+    position:relative;
+    min-height:220px;
+    display:flex;
+    border-radius:10px;
+    padding:10px;
+    background:linear-gradient(145deg,#1c0f3a,#0d0620);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,.05),
+      0 14px 34px -16px rgba(0,0,0,.8);
+    transition:transform .25s ease, box-shadow .25s ease;
+  }
+  .screen:hover{
+    transform:translateY(-4px);
+    box-shadow:
+      0 0 0 1px var(--neon-cyan),
+      0 0 26px -2px var(--neon-cyan),
+      0 18px 40px -16px rgba(0,0,0,.85);
+  }
+
+  /* Salas de VIDEO (las primeras 3): el área del video respeta 16:9,
+     pero se le suma un margen fijo abajo para que la barra de
+     controles del reproductor (que aparece al pasar el cursor) no
+     quede recortada por el borde del frame. */
+  .screen.video{
+    min-height:0;
+    display:block;
+    height:auto;
+  }
+  .screen.video .embed-holder{
+    position:relative;
+    width:100%;
+    height:auto;
+    padding-top:calc(56.25% + 46px); /* 16:9 + espacio para controles */
+    flex:none;
+    overflow:visible;
+  }
+  .screen.video .embed-holder iframe{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    border-radius:6px;
+  }
+
+  /* Salas de AUDIO: más alto para que el reproductor alcance a mostrar
+     su lista de reproducción / capítulos sin que el frame la recorte. */
+  .screen.audio{
+    min-height:430px;
+  }
+
+  .sala-tag{
+    position:absolute;
+    top:-11px; left:14px;
+    right:14px;
+    font-family:'Share Tech Mono', monospace;
+    font-size:10px;
+    letter-spacing:.08em;
+    background:var(--neon-magenta);
+    color:#160225;
+    padding:3px 9px;
+    border-radius:4px;
+    box-shadow:0 0 10px rgba(255,46,136,.7);
+    z-index:2;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .embed-holder{
+    position:relative;
+    width:100%;
+    flex:1;
+    border-radius:6px;
+    overflow:hidden;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0px, rgba(255,255,255,.035) 1px, transparent 1px, transparent 3px),
+      #05020c;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .embed-placeholder{
+    text-align:center;
+    color:var(--text-dim);
+    font-family:'Share Tech Mono', monospace;
+    font-size:11px;
+    letter-spacing:.08em;
+    padding:10px;
+  }
+  .embed-placeholder .play-glyph{
+    width:38px;height:38px;
+    margin:0 auto 10px;
+    border-radius:50%;
+    border:1px solid var(--neon-cyan);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--neon-cyan);
+    box-shadow:0 0 14px rgba(5,242,219,.5) inset, 0 0 10px rgba(5,242,219,.35);
+  }
+
+  .embed-holder iframe,
+  .embed-holder audio,
+  .embed-holder embed{
+    width:100%;
+    height:100%;
+    border:0;
+    display:block;
+  }
+
+  .ticket{
+    margin-top:12px;
+    position:relative;
+    background:var(--panel);
+    border:1px solid var(--panel-edge);
+    border-radius:8px;
+    padding:14px 14px 12px;
+  }
+  .ticket::before,
+  .ticket::after{
+    content:"";
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    width:14px;height:14px;
+    background:var(--bg-void);
+    border:1px solid var(--panel-edge);
+    border-radius:50%;
+  }
+  .ticket::before{ left:-8px; }
+  .ticket::after{ right:-8px; }
+
+  .ticket-title{
+    font-family:'Orbitron', sans-serif;
+    font-size:.8rem;
+    letter-spacing:.02em;
+    color:#fff;
+    margin:0 0 6px;
+  }
+  .ticket-desc{
+    margin:0;
+    font-size:.85rem;
+    line-height:1.4;
+    color:var(--text-dim);
+  }
+  .ticket-desc[contenteditable="true"]:focus{
+    outline:1px dashed var(--neon-cyan);
+    color:var(--text-soft);
+    border-radius:4px;
+  }
+
+  footer{
+    text-align:center;
+    padding:30px 20px 46px;
+    font-family:'Share Tech Mono', monospace;
+    font-size:11px;
+    letter-spacing:.2em;
+    color:var(--text-dim);
+  }
+  footer span{ color:var(--neon-magenta); }
+
+  @keyframes flicker{
+    0%,19%,21%,23%,54%,56%,100%{ opacity:1; }
+    20%,22%,55%{ opacity:.78; }
+  }
+  @keyframes pulse{
+    0%,100%{ opacity:1; } 50%{ opacity:.25; }
+  }
+  @keyframes bulb-chase{
+    0%,100%{ opacity:.25; }
+    50%{ opacity:1; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="marquee-frame">
+    <div class="marquee-bulbs" id="bulbs"></div>
+    <div class="marquee-inner">
+      <p class="eyebrow">TU SALA DE CINE DIGITAL · 24 HORAS</p>
+      <h1 class="title">SYSTEMFAIL</h1>
+      <p class="subtitle">"En este cine no compras boletos con dinero. Los ganas escuchando historias."</p>
+      <div class="now-showing"><span class="dot"></span> ESCUCHA UN PODCAST Y GANA CRÉDITOS</div>
+    </div>
+  </div>
+
+  <div class="filmstrip" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <main class="cartelera">
+
+    <!-- SALAS DE VIDEO (usan class="screen video" -> proporción 16:9 real) -->
+
+    <div class="slot">
+      <div class="screen video">
+        <span class="sala-tag">SALA 01: He-Man - Amos del Universo 2026</span>
+        <div class="embed-holder">
+          <iframe src="https://vimeos.net/embed-1w90yyz1pqnx.html?tt=PwRSgwAL%2BPJ%2BnpoJ7d4BzSjkJl1OWnraxJua3DDE0ZlXPSV68Vqc%2FDbjgiMoFleM4FMA%2B%2BuKZ6ynZrMB9cJ5Zg%3D%3D"
+            title="Amos del Universo (2026) - LaMovie – Películas, Series y Animes Online en HD Gratis" frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen></iframe>
+        </div>
+      </div>
+      <div class="ticket">
+        <p class="ticket-title">He-Man: Amos del Universo</p>
+        <p class="ticket-desc" contenteditable="true">En las regiones más lejanas del espacio, el Reino de Eternia está amenazado por el villano Skeletor y sus ejércitos de oscuridad. El joven príncipe Adam debe recuperar una espada mítica y convertirse en el legendario guerrero conocido como "He-Man".</p>
+      </div>
+    </div>
+
+    <div class="slot">
+      <div class="screen video">
+        <span class="sala-tag">SALA 02: Supergirl 2026</span>
+        <div class="embed-holder">
+          <iframe src="https://vimeos.net/embed-3lrsrb8yg9r7.html?tt=FfYtGfqvyovG4RInHsrTC2TvDqF5Z3IHQ8JXSBTUu5qwnGzydL38auIFWTMO5p8X4WYYeZH9rxSO4BuKj1XR3w%3D%3D"
+            title="Supergirl (2026) - LaMovie – Películas, Series y Animes Online en HD Gratis" frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen></iframe>
+        </div>
+      </div>
+      <div class="ticket">
+        <p class="ticket-title">Supergirl</p>
+        <p class="ticket-desc" contenteditable="true">Mientras celebra su cumpleaños número 21, Kara Zor-El viaja por la galaxia con su perro Krypto. Durante el viaje conoce a la joven Ruthye Marye Knoll y emprende una búsqueda de venganza.</p>
+      </div>
+    </div>
+
+    <div class="slot">
+      <div class="screen video">
+        <span class="sala-tag">SALA 03: Super Mario Galaxy 2026</span>
+        <div class="embed-holder">
+          <iframe src="https://vimeos.net/embed-v7hdakih9470.html?tt=a93aIqeIP5Ya%2FNO89cPhJ09BzXuZhATlliRS4EwS6wSQdxten8Yu84mvDoom2iu729jbrUH0hSsS65A9FAD4JA%3D%3D"
+            title="Super Mario Galaxy: La película (2026) - LaMovie – Películas, Series y Animes Online en HD Gratis" frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen></iframe>
+        </div>
+      </div>
+      <div class="ticket">
+        <p class="ticket-title">Super Mario Galaxy</p>
+        <p class="ticket-desc" contenteditable="true">Escribe aquí una breve descripción del episodio.</p>
+      </div>
+    </div>
+
+    <!-- SALAS DE AUDIO (usan class="screen audio") -->
+
+    <div class="slot">
+      <div class="screen audio">
+        <span class="sala-tag">El Panda Shou</span>
+        <div class="embed-holder">
+          <iframe src="https://widget.spreaker.com/player?show_id=6971484&theme=dark&playlist=show&playlist-continuous=true&chapters-image=true"
+            title="panda shou" frameborder="0"></iframe>
+        </div>
+      </div>
+      <div class="ticket">
+        <p class="ticket-title">El Panda Shou</p>
+        <p class="ticket-desc" contenteditable="true">Las bromas telefónicas más irreverentes.</p>
+      </div>
+    </div>
+
+    <div class="slot">
+      <div class="screen audio">
+        <span class="sala-tag">Psicocatarsis</span>
+        <div class="embed-holder">
+          <iframe src="https://widget.spreaker.com/player?show_id=6719012&theme=dark&playlist=show&playlist-continuous=true&chapters-image=true"
+            title="PSICOCATARSIS." frameborder="0"></iframe>
+        </div>
+      </div>
+      <div class="ticket">
+        <p class="ticket-title">Psicocatarsis</p>
+        <p class="ticket-desc" contenteditable="true">Liberación de las emociones negativas.</p>
+      </div>
+    </div>
+
+    <div class="slot">
+      <div class="screen audio">
+        <span class="sala-tag">El Viejo Librero</span>
+        <div class="embed-holder">
+          <iframe src="https://widget.spreaker.com/player?show_id=5637306&theme=dark&playlist=show&playlist-continuous=true&chapters-image=true"
+            title="El Viejo Librero" frameborder="0"></iframe>
+        </div>
+      </div>
+      <div class="ticket">
+        <p class="ticket-title">El Viejo Librero</p>
+        <p class="ticket-desc" contenteditable="true">Ciencia, misterio, audiolibros y un poco más.</p>
+      </div>
+    </div>
+
+    <div class="slot">
+      <div class="screen audio">
+        <span class="sala-tag">Chucho el Roto</span>
+        <div class="embed-holder">
+          <iframe src="https://widget.spreaker.com/player?show_id=7170337&theme=dark&playlist=show&playlist-continuous=true&chapters-image=true"
+            title="CHUCHO EL ROTO - la radionovela" frameborder="0"></iframe>
+        </div>
+      </div>
+      <div class="ticket">
+        <p class="ticket-title">Chucho el Roto</p>
+        <p class="ticket-desc" contenteditable="true">Radionovela: robaba a los ricos, ayudaba a los pobres y burlaba constantemente a la policía.</p>
+      </div>
+    </div>
+
+    <div class="slot">
+      <div class="screen audio">
+        <span class="sala-tag">El Ojo de Vidrio</span>
+        <div class="embed-holder">
+          <iframe src="https://widget.spreaker.com/player?show_id=7173474&theme=dark&playlist=show&playlist-continuous=true&chapters-image=true"
+            title="Porfirio Cadena - El ojo de vidrio" frameborder="0"></iframe>
+        </div>
+      </div>
+      <div class="ticket">
+        <p class="ticket-title">El Ojo de Vidrio</p>
+        <p class="ticket-desc" contenteditable="true">Radionovela: buscaba venganza. El western mexicano.</p>
+      </div>
+    </div>
+
+    <div class="slot">
+      <div class="screen audio">
+        <span class="sala-tag">Pesadillas Reales</span>
+        <div class="embed-holder">
+          <iframe src="https://widget.spreaker.com/player?show_id=5745666&theme=dark&playlist=show&playlist-continuous=true&chapters-image=true"
+            title="PESADILLAS REALES" frameborder="0"></iframe>
+        </div>
+      </div>
+      <div class="ticket">
+        <p class="ticket-title">Pesadillas Reales</p>
+        <p class="ticket-desc" contenteditable="true">¡Prepárate para sentir el escalofrío en cada palabra susurrada!</p>
+      </div>
+    </div>
+
+    <div class="slot">
+      <div class="screen audio">
+        <span class="sala-tag">La Señora de las Lomas</span>
+        <div class="embed-holder">
+          <iframe src="https://widget.spreaker.com/player?show_id=6092055&theme=dark&playlist=show&playlist-continuous=true&chapters-image=true"
+            title="nay salvatori la gran señora de las lomas" frameborder="0"></iframe>
+        </div>
+      </div>
+      <div class="ticket">
+        <p class="ticket-title">Nay Salvatori</p>
+        <p class="ticket-desc" contenteditable="true">Aquí pura señora bien.</p>
+      </div>
+    </div>
+
+    <div class="slot">
+      <div class="screen audio">
+        <span class="sala-tag">Remi</span>
+        <div class="embed-holder">
+          <iframe src="https://widget.spreaker.com/player?show_id=6241544&theme=dark&playlist=show&playlist-continuous=true&chapters-image=true"
+            title="Remi el niño de nadie" frameborder="0"></iframe>
+        </div>
+      </div>
+      <div class="ticket">
+        <p class="ticket-title">Remi: el niño de nadie</p>
+        <p class="ticket-desc" contenteditable="true">La historia de un niño que fue vendido contra su voluntad por su padrastro a un actor ambulante italiano.</p>
+      </div>
+    </div>
+
+    <div class="slot">
+      <div class="screen audio">
+        <span class="sala-tag">Crimen y Castigo</span>
+        <div class="embed-holder">
+          <iframe src="https://widget.spreaker.com/player?show_id=6671022&theme=dark&playlist=show&playlist-continuous=true&chapters-image=true"
+            title="CRIME AND PUNISHMENT" frameborder="0"></iframe>
+        </div>
+      </div>
+      <div class="ticket">
+        <p class="ticket-title">Crimen y Castigo</p>
+        <p class="ticket-desc" contenteditable="true">Criminales relatan sus historias.</p>
+      </div>
+    </div>
+
+  </main>
+
+  <footer>SEÑAL TRANSMITIDA DESDE LA <span>CARTELERA</span> · FUNCIÓN CONTINUA</footer>
+
+<script>
+  (function(){
+    const box = document.getElementById('bulbs');
+    const count = 46;
+    for(let i=0;i<count;i++){
+      const b = document.createElement('span');
+      const t = i/count;
+      let x, y;
+      if(t < 0.28){ x = t/0.28*100; y = 0; }
+      else if(t < 0.5){ x = 100; y = (t-0.28)/0.22*100; }
+      else if(t < 0.78){ x = 100-(t-0.5)/0.28*100; y = 100; }
+      else { x = 0; y = 100-(t-0.78)/0.22*100; }
+      b.style.left = x + '%';
+      b.style.top = y + '%';
+      b.style.animationDelay = (i * 0.07) + 's';
+      box.appendChild(b);
+    }
+  })();
+</script>
+</body>
+</html>

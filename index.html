@@ -244,6 +244,61 @@
     border-radius:2px;
   }
 
+  /* ---------- HUD: contador de visitas + ubicación detectada ---------- */
+  .hud{
+    max-width:1180px;
+    margin:0 auto 30px;
+    padding:0 20px;
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:14px;
+  }
+  .hud-chip{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    padding:9px 16px;
+    border-radius:8px;
+    background:var(--panel);
+    border:1px solid var(--panel-edge);
+    font-family:'Share Tech Mono', monospace;
+    font-size:12px;
+    letter-spacing:.05em;
+    color:var(--text-dim);
+  }
+  .hud-chip svg{
+    width:15px; height:15px;
+    flex-shrink:0;
+    color:var(--neon-cyan);
+  }
+  .hud-chip .hud-label{
+    color:var(--text-dim);
+  }
+  .hud-chip .hud-value{
+    color:var(--neon-cyan);
+    font-weight:700;
+    text-shadow:0 0 8px rgba(5,242,219,.6);
+  }
+  .hud-chip .hud-value::after{
+    content:"";
+    display:inline-block;
+    width:7px; height:12px;
+    margin-left:4px;
+    background:var(--neon-cyan);
+    vertical-align:-2px;
+    animation:cursor-blink 1s steps(1) infinite;
+  }
+  .hud-chip.location .hud-value{
+    color:var(--neon-magenta);
+    text-shadow:0 0 8px rgba(255,46,136,.6);
+  }
+  .hud-chip.location .hud-value::after{ background:var(--neon-magenta); }
+
+  @keyframes cursor-blink{
+    0%,49%{ opacity:1; } 50%,100%{ opacity:0; }
+  }
+
   /* ---------- GRID (auto-ajustable con flexbox) ---------- */
   /* No depende de contar elementos exactos: si agregas o quitas salas,
      se reacomodan solas en filas de 4 / 2 / 1 según pantalla, y la
@@ -500,6 +555,19 @@
     <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
   </div>
 
+  <div class="hud">
+    <div class="hud-chip visits">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span class="hud-label">VISITAS TOTALES:</span>
+      <span class="hud-value" id="visitCount">···</span>
+    </div>
+    <div class="hud-chip location">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      <span class="hud-label">SEÑAL DETECTADA DESDE:</span>
+      <span class="hud-value" id="visitorLocation">···</span>
+    </div>
+  </div>
+
   <main class="cartelera">
 
     <!-- SALAS DE VIDEO (usan class="screen video" -> proporción 16:9 real) -->
@@ -713,6 +781,35 @@
   </button>
 
 <script>
+  // Contador de visitas (CountAPI) — incrementa +1 en cada carga de página
+  // y muestra el total acumulado. Usa el dominio actual como namespace
+  // para no chocar con contadores de otros sitios.
+  (function(){
+    const el = document.getElementById('visitCount');
+    const ns = encodeURIComponent(window.location.hostname || 'cartelera-systemfail');
+    fetch('https://countapi.mileshilliard.com/api/v1/hit/' + ns + '.cartelera-visitas')
+      .then(res => res.json())
+      .then(data => { el.textContent = (data.value || data.count || '—').toLocaleString('es-MX'); })
+      .catch(() => { el.textContent = 's/d'; });
+  })();
+
+  // Ubicación aproximada del visitante actual, detectada por IP (ipapi.co).
+  // Solo muestra la ciudad/país de quien está viendo la página en este
+  // momento — no guarda ni expone ubicaciones de otras personas.
+  (function(){
+    const el = document.getElementById('visitorLocation');
+    fetch('https://ipapi.co/json/')
+      .then(res => res.json())
+      .then(data => {
+        if(data.city && data.country_name){
+          el.textContent = data.city + ', ' + data.country_name;
+        } else {
+          el.textContent = 'señal cifrada';
+        }
+      })
+      .catch(() => { el.textContent = 'señal cifrada'; });
+  })();
+
   // Botón flotante de compartir: arma los enlaces con la URL actual
   // y abre/cierra el mini menú con WhatsApp y Facebook.
   (function(){

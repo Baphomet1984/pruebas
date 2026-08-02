@@ -97,6 +97,54 @@
     animation:flicker 5s infinite;
   }
 
+  /* ---------- LOGO (reemplaza al título de texto) ---------- */
+  .logo-wrap{
+    position:relative;
+    display:inline-block;
+    max-width:100%;
+    filter:
+      drop-shadow(0 0 10px rgba(255,46,136,.75))
+      drop-shadow(0 0 26px rgba(255,46,136,.5))
+      drop-shadow(0 0 40px rgba(5,242,219,.35));
+    animation:flicker 5s infinite;
+  }
+  .logo-wrap img{
+    display:block;
+    width:clamp(220px, 46vw, 480px);
+    height:auto;
+  }
+  .logo-wrap .logo-glitch{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    mix-blend-mode:screen;
+    opacity:0;
+  }
+  .logo-wrap .layer-cyan{
+    filter:brightness(0) saturate(100%) invert(70%) sepia(80%) saturate(1800%) hue-rotate(130deg) brightness(1.1);
+    animation:glitch-cyan 6s infinite;
+  }
+  .logo-wrap .layer-magenta{
+    filter:brightness(0) saturate(100%) invert(20%) sepia(90%) saturate(3000%) hue-rotate(300deg) brightness(1.1);
+    animation:glitch-magenta 6s infinite;
+  }
+
+  @keyframes glitch-cyan{
+    0%,88%,100%{ opacity:0; transform:translate(0,0); clip-path:inset(0 0 0 0); }
+    89%{ opacity:.75; transform:translate(-4px,1px); clip-path:inset(10% 0 55% 0); }
+    90.5%{ opacity:.6; transform:translate(3px,-1px); clip-path:inset(45% 0 15% 0); }
+    92%{ opacity:.7; transform:translate(-2px,0); clip-path:inset(20% 0 35% 0); }
+    93.5%{ opacity:0; transform:translate(0,0); }
+  }
+  @keyframes glitch-magenta{
+    0%,88%,100%{ opacity:0; transform:translate(0,0); clip-path:inset(0 0 0 0); }
+    89%{ opacity:.7; transform:translate(4px,-1px); clip-path:inset(55% 0 10% 0); }
+    90.5%{ opacity:.6; transform:translate(-3px,1px); clip-path:inset(15% 0 45% 0); }
+    92%{ opacity:.65; transform:translate(2px,0); clip-path:inset(35% 0 20% 0); }
+    93.5%{ opacity:0; transform:translate(0,0); }
+  }
+
   .subtitle{
     margin:12px auto 0;
     max-width:560px;
@@ -538,7 +586,11 @@
     <div class="marquee-bulbs" id="bulbs"></div>
     <div class="marquee-inner">
       <p class="eyebrow">TU SALA DE CINE PORTATIL · 24 HORAS</p>
-      <h1 class="title">SYSTEMFAIL</h1>
+      <div class="logo-wrap">
+        <img src="logo.png" alt="SYSTEMFAIL PROJECT" class="logo-base">
+        <img src="logo.png" alt="" aria-hidden="true" class="logo-glitch layer-cyan">
+        <img src="logo.png" alt="" aria-hidden="true" class="logo-glitch layer-magenta">
+      </div>
       <p class="subtitle">"Esta es la primera función del Cine SYSTEMFAIL. Aún está en construcción, pero las puertas ya están abiertas. Y ES GRATIS"</p>
       <div class="now-showing"><span class="dot"></span> UNETE A LA COMUNIDAD Y SÉ PARTE DEL SISTEMA</div>
       <br>
